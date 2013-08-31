@@ -14,6 +14,7 @@ local frameName;
 local Life = {};
 Life.kills 				= 0;
 Life.kpm 				= 0;
+Life.xp 				= 0;
 
 -- Encounter Stats:
 local Encounter = {};
@@ -21,6 +22,7 @@ Encounter.timer 				= Callback2.Create();
 Encounter.timerUpdate 			= 5;
 Encounter.kills 				= 0;
 Encounter.kpm 					= 0;
+Encounter.xp					= 0;
 
 --Timer Vars
 local lastCombatEvent;
@@ -100,12 +102,14 @@ end
 function OutOfCombat()
 	log("Out of combat. Set startTime to nil and reset Encounter stats.");
 	local elapsedMins = ((System.GetElapsedTime(startTime) - TIME_UNTIL_OUT_OF_COMBAT) + 1) / 60;
-	Encounter.kpm = Encounter.kills / (elapsedMins);
-	msg("eKPM: That encounter you had " .. string.format("%d",Encounter.kills) .. " kills over " .. string.format("%0.1f", elapsedMins) .. " minutes. KPM: " .. string.format("%0.2f",Encounter.kpm));
+	Encounter.kpm = Encounter.kills / elapsedMins;
+	local XPPM = Encounter.xp / elapsedMins;
+	msg("eKPM: That encounter you had " .. string.format("%d",Encounter.kills) .. " kills over " .. string.format("%0.1f", elapsedMins) .. " minutes, and earned "..Encounter.xp.."xp. KPM: " .. string.format("%0.2f",Encounter.kpm) .. "XP/Min: " .. string.format("%0.2f", XPPM));
 	
 	startTime = nil;
 	Encounter.kills = 0;
 	Encounter.kpm = 0;
+	Encounter.xp = 0;
 	
 	Encounter.timer:Cancel();
 end
@@ -139,6 +143,11 @@ end
 function OnAlive()
 	--log("IT'S ALLIIIIIVVVE!!");
 	aliveTime = System.GetClientTime();
+end
+
+function OnXP(args)
+	Encounter.xp = Encounter.xp + args.delta;
+	Life.xp = Life.xp + args.delta;
 end
 
 function OnPlayerReady()
